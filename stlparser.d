@@ -1,10 +1,8 @@
 module stlparser;
 
-void main (string [] args) {
-    assert (args.length == 2, `No filename given`);
-    import std.stdio;
-    import std.algorithm;
-    auto file = File (args [1]);
+auto ref parseSTL (in string filename) {
+    import std.stdio : File;
+    auto file = File (filename);
     auto lines = file
         .byLineCopy;
     import std.regex : ctRegex, matchFirst;
@@ -26,23 +24,28 @@ void main (string [] args) {
         }
         // Splits a string with floats separated by spaces to the floats.
         static auto ref toFloats (in string toParse) {
-            import std.conv : to;
+            import std.algorithm : map;
+            import std.conv      : to;
             return toParse.split(' ').map!(n => n.to!float);
         }
         line = line.strip;
-        enum floatsRegex = `((?:[+-]?(?:\d*[.])?\d+\s*){3})`;
+        enum floatsRegex = `((?:[+-]?(?:\d*[.])?\d+(?:e[+-]?\d+)?\s*){3})`;
         matchSwitch ([
             () { return line.tryMatch!(`^facet\s+normal\s+` ~ floatsRegex ~ `$`)
             /**/ (facet  => facets   ~= toFloats (facet)); },
             () { return line.tryMatch!(`^vertex\s+` ~ floatsRegex ~ `$`)
             /**/ (vertex => vertices ~= toFloats (vertex)); },
-            () { return line.tryMatch!(`facet(.+)`) (n => n.writeln);}
         ]);
     }
-    `vertices: `.writeln;
-    vertices.data.length.writeln;
-    `facets: `.writeln;
-    facets.data.length.writeln;
+    auto returnVertices = vertices.data;
+    auto returnFacets   = facets.data;
+    import std.conv : text;
+    enforce (returnVertices.length == returnFacets.length * 3
+    /**/ , text (`There aren't 3 times as much vertices as facets: `
+    /**/ , returnVertices, ` `, returnFacets.length)
+    );
+    import std.typecons : tuple;
+    return tuple (returnVertices, returnFacets);
 }
 
 
