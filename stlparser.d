@@ -9,9 +9,9 @@ auto ref parseSTL (in string filename) {
         .byLineCopy
         .map!strip;
     import std.regex : ctRegex, matchFirst;
-    auto solidRegex  = ctRegex!`^solid\s+(?:\"(?:\\.|[^\\"])*\")?$`;
+    auto solidRegex  = ctRegex!`^solid\s+.*`;
     import std.exception : enforce;
-    enforce (!lines.empty && lines.front.strip.matchFirst (solidRegex)
+    enforce (!lines.empty && lines.front.matchFirst (solidRegex)
     /**/ , `ASCII stl file doesn't start with 'solid '`);
     lines.popFront ();
     import std.array : Appender, split;
