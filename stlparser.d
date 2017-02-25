@@ -43,7 +43,7 @@ auto ref parseSTL (in string filename) {
     /**/ , text (`There aren't 3 times as much vertices as facets: `
     /**/ , returnVertices.length, ` `, returnFacets.length) );
     import std.typecons : tuple;
-    return tuple (returnVertices, returnFacets);
+    return tuple!(`vertices`, `facets`) (returnVertices, returnFacets);
 }
 
 /// If the line matches the regexExpression, executes action and returns true,
