@@ -1,4 +1,4 @@
-module stlparser;
+module stlloader.stlparser;
 
 auto ref parseSTL (in string filename) {
     import std.stdio : File;
@@ -14,22 +14,26 @@ auto ref parseSTL (in string filename) {
     enforce (!lines.empty && lines.front.matchFirst (solidRegex)
     /**/ , `ASCII stl file doesn't start with 'solid '`);
     lines.popFront ();
-    import std.array : Appender, split;
+    import std.array : Appender;
     Appender!(float []) facets   = [];
     Appender!(float []) vertices = [];
     foreach (line; lines) {
         /// Splits a string with floats separated by spaces to the floats.
         static auto ref toFloats (in string toParse) {
-            import std.conv      : to;
-            return toParse.split(' ').map!(to!float);
+            import std.conv  : to;
+            import std.regex : split;
+            return toParse.split(ctRegex!`\s+`).map!(to!float);
         }
         enum floatsRegex = `((?:[+-]?(?:\d*[.])?\d+(?:e[+-]?\d+)?\s*){3})`;
+        import std.stdio;
 
         [   // Adds facets and vertices to their respective Appender.
             () { return line.tryMatch!(`^facet\s+normal\s+` ~ floatsRegex ~ `$`)
             /**/ (facet  => facets   ~= toFloats (facet)); },
+            //(facet => facet.writeln);},
             () { return line.tryMatch!(`^vertex\s+` ~ floatsRegex ~ `$`)
             /**/ (vertex => vertices ~= toFloats (vertex)); }
+            //(vertex => vertex.writeln);}
         ].find!`a()`(true); // Tries each function until one returns true.
     }
     auto returnVertices = vertices.data;
